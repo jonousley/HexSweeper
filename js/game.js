@@ -53,7 +53,8 @@ function resizeGraphics()
 
 function mouseUp(event)
 {
-	point = {x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
+	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
+	//console.log(point.x+","+point.y); debug
 	if (event.button === mouseCode.left)
 	{
 		grid.iterateList(function(hex) {
@@ -66,9 +67,25 @@ function mouseUp(event)
 	}
 }
 
+function getXYfromEvent(e)
+{
+	var result = {x:0, y:0};
+	if (e.pageX || e.pageY) { 
+	  result.x = e.pageX;
+	  result.y = e.pageY;
+	}
+	else { 
+	  result.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
+	  result.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
+	} 
+	result.x -= canvas.offsetLeft;
+	result.y -= canvas.offsetTop;
+	return result;
+}
+
 function mouseDown(event)
 {
-	point = {x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
+	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
 	if (event.button === mouseCode.left)
 	{
 		grid.iterateList(function(hex) {
