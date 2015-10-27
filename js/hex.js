@@ -1,6 +1,7 @@
 
 
-var hexColors = [{fill:"#709BB8",stroke:"black"},{fill:"#C6D7E3", stroke:"black"}];
+var hexColors = [{fill:"#709BB8",stroke:"black"},{fill:"#C6D7E3", stroke:"black"},
+				{fill:"red", stroke:"black"}];
 
 
 function Hex(valid, r)
@@ -35,9 +36,12 @@ Hex.prototype.draw = function(drawer)
 {
 	if (!this.valid) return;
 
-	drawer.drawHex(this.x,this.y,this.r,hexColors[this.revealed]);
+	if (this.revealed && this.value==-1)
+		drawer.drawHex(this.x,this.y,this.r,hexColors[2]);
+	else
+		drawer.drawHex(this.x,this.y,this.r,hexColors[this.revealed]);
 
-	if (this.revealed && this.value!=0)
+	if (this.revealed && this.value>0)
 		drawer.drawText(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
 
 	if (this.marked)
