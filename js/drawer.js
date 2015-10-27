@@ -32,3 +32,16 @@ Drawer.prototype.drawText = function(x,y,text,size)
 	this.ctx.fillStyle = "black";
 	this.ctx.fillText(text, x, y);
 }
+
+Drawer.prototype.drawX = function(x,y,text,size)
+{
+	size = Math.floor(size/2);
+	this.ctx.strokeStyle = "red";
+	this.ctx.beginPath();
+	this.ctx.moveTo(x-size,y-size);
+	this.ctx.lineTo(x+size,y+size);
+	this.ctx.moveTo(x+size,y-size);
+	this.ctx.lineTo(x-size,y+size);
+	this.ctx.closePath();
+	this.ctx.stroke();
+}

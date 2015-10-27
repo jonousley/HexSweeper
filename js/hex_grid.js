@@ -1,3 +1,6 @@
+//This object contains two data structures to store the grid of hexes, a 2d array and a list
+//To 
+
 
 function HexGrid(gridLength, hexRadius)
 {

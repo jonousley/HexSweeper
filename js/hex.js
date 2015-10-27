@@ -1,22 +1,29 @@
-/* Hex.status:
- *       0 - unrevealed
- *       1 - revealed
- *
- */
+
 
 var hexColors = [{fill:"#709BB8",stroke:"black"},{fill:"#C6D7E3", stroke:"black"}];
 
 
-function Hex(valid, r, value, x, y, status)
+function Hex(valid, r)
 {
-	this.x = x || 0;
-	this.y = y || 0;
+	this.x = 0;
+	this.y = 0;
 	this.r = r;
-	this.status = status || 0;
-	this.value = value || 0;
+	this.revealed =  0;
+	this.value = 0;
 	this.valid = valid || 0;
 
 	this.adjacentCells = [];
+}
+
+Hex.prototype.setXY = function(x,y)
+{
+	this.x = x;
+	this.y = y;
+}
+
+Hex.prototype.setValue = function(value)
+{
+	this.value = value;
 }
 
 Hex.prototype.adjacentCells = function (cells)
@@ -28,10 +35,13 @@ Hex.prototype.draw = function(drawer)
 {
 	if (!this.valid) return;
 
-	drawer.drawHex(this.x,this.y,this.r,hexColors[this.status]);
+	drawer.drawHex(this.x,this.y,this.r,hexColors[this.revealed]);
 
-	if (this.status && this.value!=0)
+	if (this.revealed && this.value!=0)
 		drawer.drawText(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
+
+	if (this.marked)
+		drawer.drawX(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
 }
 
 Hex.prototype.checkCollision = function(point)
@@ -48,8 +58,8 @@ Hex.prototype.checkCollision = function(point)
 
 Hex.prototype.reveal = function()
 {
-	if (!this.valid || this.status) return;
-	this.status = 1;
+	if (!this.valid || this.revealed || this.marked) return;
+	this.revealed = 1;
 
 	if (this.getAdjacentMarkers() == this.value)
 	{
@@ -57,6 +67,12 @@ Hex.prototype.reveal = function()
 			i.reveal();
 		});
 	}
+}
+
+Hex.prototype.mark = function()
+{
+	if (!this.valid || this.revealed) return;
+	this.marked = !this.marked;
 }
 
 Hex.prototype.getAdjacentMarkers = function()

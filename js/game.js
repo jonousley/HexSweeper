@@ -2,26 +2,28 @@
 var canvas = document.getElementById("canvas1");
 var ctx = canvas.getContext("2d");
 
-var middle = {x:0, y:0};
-var hexAngle = Math.PI * 2/3;
-var hexRadius = 20;
-var sqrt3 = Math.sqrt(3);
+var middle = {x:0, y:0}; //middle of the page, all coords will relative to this location
 
-var gridLength = 6;
-var startMines = 10;
+var hexRadius = 20;		  //not 20, overwritten constantly based on page resizing
 
-var firstClick = true;
+const hexAngle = Math.PI * 2/3;
+const sqrt3 = Math.sqrt(3); //commonly used constant for hexagonal calculations
 
-//10/60 seemed about good
-
-var clickedHex = new Hex(0);
+var gridLength = 6;  //how many hexagons on each side of the large hexagon
+var startMines = 10; //starting amount of mines
 
 
-var grid;
-var drawer;
+//the clicked hex during the mousedown even
+//will be an invalid hex if no Hex was clicked
+var leftClickedHex = new Hex(0); //Hex(0) creates an unusable Hex
+var rightClickedHex = new Hex(0);
+
+
+var grid;   //HexGrid object
+var drawer; //drawer Object
 //var inputManager;
-var mouseCode = {left: 0, right : 2};
-
+var mouseCode = {left: (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) ? 1:0, right : 2}; //normalized mouseCodes for IE
+var gameInitialized = false;
 
 function init()
 {
@@ -51,22 +53,7 @@ function resizeGraphics()
 	grid.initHexPositions(hexRadius);
 }
 
-function mouseUp(event)
-{
-	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
-	//console.log(point.x+","+point.y); debug
-	if (event.button === mouseCode.left)
-	{
-		grid.iterateList(function(hex) {
-			if (!hex.checkCollision(point))
-			{
-				if (hex==clickedHex) clickHex(hex);
-			}
-		});
-		clickedHex = new Hex(0);
-	}
-}
-
+//additional processing for the event data, compatible with firefox/chrome
 function getXYfromEvent(e)
 {
 	var result = {x:0, y:0};
@@ -83,28 +70,77 @@ function getXYfromEvent(e)
 	return result;
 }
 
+//determines what hexagon was selected when the mouse button is pressed
 function mouseDown(event)
 {
 	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
 	if (event.button === mouseCode.left)
 	{
+		if (rightClickedHex.valid) return; //user currently right clicking
 		grid.iterateList(function(hex) {
 			if (!hex.checkCollision(point))
 			{
-				clickedHex = hex;
+				leftClickedHex = hex;
+			}
+		});
+	}
+
+	if (event.button === mouseCode.right)
+	{
+		if (leftClickedHex.valid) return; //user currently left clicking
+		grid.iterateList(function(hex) {
+			if (!hex.checkCollision(point))
+			{
+				rightClickedHex = hex;
 			}
 		});
 	}
 }
 
-function clickHex(hex)
+//ensures that the hexagon being selected is the same as the one pressed during the mouseDown
+//event and if so runs the clickHex function
+function mouseUp(event)
 {
-	if (firstClick)
+	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
+	//console.log(point.x+","+point.y); debug
+	if (event.button === mouseCode.left && leftClickedHex.valid)
 	{
-		firstClick = false;
+		grid.iterateList(function(hex) { //inneficient, to be fixed
+			if (!hex.checkCollision(point))
+			{
+				if (hex==leftClickedHex) leftClickHex(hex);
+			}
+		});
+
+		leftClickedHex = new Hex(0);
+	}
+
+	if (event.button === mouseCode.right && rightClickedHex.valid)
+	{
+		grid.iterateList(function(hex) {
+			if (!hex.checkCollision(point))
+			{
+				if (hex==rightClickedHex) rightClickHex(hex);
+			}
+		});
+
+		rightClickedHex = new Hex(0);
+	}
+}
+
+function leftClickHex(hex)
+{
+	if (!gameInitialized)
+	{
+		gameInitialized = true;
 		grid.initMines(startMines, hex);
 	}
 	hex.reveal();
+}
+
+function rightClickHex(hex)
+{
+	hex.mark();
 }
 
 function draw() {
