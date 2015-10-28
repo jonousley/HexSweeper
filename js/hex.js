@@ -12,6 +12,9 @@ function Hex(valid, r)
 	this.revealed =  0;
 	this.value = 0;
 	this.valid = valid || 0;
+	this.pressed = 0;
+	this.doublePressed = 0;
+	this.marked = 0;
 
 	this.adjacentCells = [];
 }
@@ -38,8 +41,11 @@ Hex.prototype.draw = function(drawer)
 
 	if (this.revealed && this.value==-1)
 		drawer.drawHex(this.x,this.y,this.r,hexColors[2]);
+	else if(this.revealed || (this.pressed && !this.marked))
+		drawer.drawHex(this.x,this.y,this.r,hexColors[1]);
 	else
-		drawer.drawHex(this.x,this.y,this.r,hexColors[this.revealed]);
+		drawer.drawHex(this.x,this.y,this.r,hexColors[0]);
+
 
 	if (this.revealed && this.value>0)
 		drawer.drawText(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
@@ -52,12 +58,12 @@ Hex.prototype.checkCollision = function(point)
 {
 	//var result = {collision:0, x: 0, y:0};
 
-	if (point.y<this.y-hexRadius) return 1;
-	if (point.y>this.y+hexRadius) return 2;
-	if (point.x<this.x-sqrt3/2*hexRadius) return 3;
-	if (point.x>this.x+sqrt3/2*hexRadius) return 4;
+	if (point.y<this.y-hexRadius) return false;
+	if (point.y>this.y+hexRadius) return false;
+	if (point.x<this.x-sqrt3/2*hexRadius) return false;
+	if (point.x>this.x+sqrt3/2*hexRadius) return false;
 
-	return 0;
+	return true;
 }
 
 Hex.prototype.reveal = function()
@@ -65,12 +71,32 @@ Hex.prototype.reveal = function()
 	if (!this.valid || this.revealed || this.marked) return;
 	this.revealed = 1;
 
+	if (0 == this.value)
+	{
+		this.adjacentCells.forEach(function(i) {
+			i.reveal();
+		});
+	}
+}
+
+Hex.prototype.superReveal = function()
+{
+	if (!this.revealed) return;
+
 	if (this.getAdjacentMarkers() == this.value)
 	{
 		this.adjacentCells.forEach(function(i) {
 			i.reveal();
 		});
 	}
+}
+
+Hex.prototype.doublepress = function()
+{
+	this.pressed = this.doublePressed = true;
+	this.adjacentCells.forEach(function(hex) {
+		hex.pressed = true;
+	});
 }
 
 Hex.prototype.mark = function()
@@ -81,5 +107,9 @@ Hex.prototype.mark = function()
 
 Hex.prototype.getAdjacentMarkers = function()
 {
-	return 0;
+	var markCount = 0;
+	this.adjacentCells.forEach(function(i) {
+		if (i.valid) markCount += (i.marked || (i.value==-1 && i.revealed));
+	});
+	return markCount;
 }

@@ -15,15 +15,18 @@ var startMines = 10; //starting amount of mines
 
 //the clicked hex during the mousedown even
 //will be an invalid hex if no Hex was clicked
-var leftClickedHex = new Hex(0); //Hex(0) creates an unusable Hex
-var rightClickedHex = new Hex(0);
+var invalidHex = new Hex(0); //Hex(0) creates an unusable Hex
+var leftClickedHex = invalidHex; 
+var rightClickedHex = invalidHex;
+var doubleClickedHex = invalidHex;
 
 
 var grid;   //HexGrid object
 var drawer; //drawer Object
 //var inputManager;
+
 var mouseCode = {left: (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) ? 1:0, right : 2}; //normalized mouseCodes for IE
-var gameInitialized = false;
+var gameInitialized = false; //don't add mines until the first click happens so it's guaranteed not a mine
 
 function init()
 {
@@ -71,30 +74,29 @@ function getXYfromEvent(e)
 }
 
 //determines what hexagon was selected when the mouse button is pressed
+//and stores it in leftClickedHex or rightClickedHex
 function mouseDown(event)
 {
 	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
+
 	if (event.button === mouseCode.left)
 	{
-		if (rightClickedHex.valid) return; //user currently right clicking
-		grid.iterateList(function(hex) {
-			if (!hex.checkCollision(point))
-			{
-				leftClickedHex = hex;
-			}
-		});
+		//if the other button is already down and selecting a different hex, ignore
+		if (rightClickedHex.valid) return;
+
+		leftClickedHex = grid.checkCollision(point);
+		if (leftClickedHex.valid)
+			leftClickedHex.pressed = true;
 	}
 
-	if (event.button === mouseCode.right)
+	else if (event.button === mouseCode.right)
 	{
-		if (leftClickedHex.valid) return; //user currently left clicking
-		grid.iterateList(function(hex) {
-			if (!hex.checkCollision(point))
-			{
-				rightClickedHex = hex;
-			}
-		});
+		if (leftClickedHex.valid) return;
+		rightClickedHex = grid.checkCollision(point);
+		if (rightClickedHex.valid) rightClickedHex.mark();
 	}
+	else return;
+
 }
 
 //ensures that the hexagon being selected is the same as the one pressed during the mouseDown
@@ -103,29 +105,21 @@ function mouseUp(event)
 {
 	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
 	//console.log(point.x+","+point.y); debug
-	if (event.button === mouseCode.left && leftClickedHex.valid)
+
+	if (event.button === mouseCode.left)
 	{
-		grid.iterateList(function(hex) { //inneficient, to be fixed
-			if (!hex.checkCollision(point))
-			{
-				if (hex==leftClickedHex) leftClickHex(hex);
-			}
-		});
+		//checks that the mouse is still over the hex it clicked
+		if (leftClickedHex.valid && leftClickedHex.checkCollision(point)) 
+			leftClickHex(leftClickedHex);
 
-		leftClickedHex = new Hex(0);
+		leftClickedHex.pressed = false;
+		leftClickedHex = invalidHex;
 	}
-
-	if (event.button === mouseCode.right && rightClickedHex.valid)
+	else if (event.button === mouseCode.right)
 	{
-		grid.iterateList(function(hex) {
-			if (!hex.checkCollision(point))
-			{
-				if (hex==rightClickedHex) rightClickHex(hex);
-			}
-		});
-
-		rightClickedHex = new Hex(0);
+		rightClickedHex = invalidHex;
 	}
+	else return;
 }
 
 function leftClickHex(hex)
@@ -135,16 +129,11 @@ function leftClickHex(hex)
 		gameInitialized = true;
 		grid.initMines(startMines, hex);
 	}
+	hex.superReveal();
 	hex.reveal();
 }
 
-function rightClickHex(hex)
-{
-	hex.mark();
-}
-
 function draw() {
-
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	if (ctx.canvas.width != window.innerWidth ||
 		ctx.canvas.height != window.innerHeight)
@@ -157,9 +146,16 @@ function draw() {
 	grid.iterateGrid(function(hex, i, j) {
 		hex.draw(drawer);
 	});
+
+	window.requestAnimationFrame(draw); //draw whenever possible
 }
 
-window.requestAnimationFrame(function () {
-	init();
-	setInterval(draw, 10);
-});
+function update() {
+
+
+}
+
+init();
+//setInterval(update,10); //call update every ten ms
+draw(); //start the draw cycle
+	//setInterval(draw, 10);
