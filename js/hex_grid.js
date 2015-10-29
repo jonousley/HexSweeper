@@ -2,12 +2,12 @@
 //To 
 
 
-function HexGrid(gridLength, hexRadius)
+function HexGrid(gridLength)
 {
 	this.grid = [];
 	this.gridList = [];
 	this.gridLength = gridLength;
-	this.hexRadius = hexRadius;
+	this.hexRadius = 0;
 
 	for (j =0; j<gridLength*2-1; j++)
 	{
@@ -19,7 +19,7 @@ function HexGrid(gridLength, hexRadius)
 			 if(i<gridLength*2-1-Math.floor(Math.abs(j-gridLength+1)/2) &&
 				i>=Math.ceil(Math.abs(j-gridLength+1)/2)) 
 			 {
-				this.grid[j][i] = new Hex(1, hexRadius);
+				this.grid[j][i] = new Hex(1); //uninitialized, valid hex
 				this.gridList.push(this.grid[j][i]);
 			}
 			else this.grid[j][i] = invalidHex; //not in the hexagon pattern
@@ -28,10 +28,9 @@ function HexGrid(gridLength, hexRadius)
 }
 
 
-HexGrid.prototype.initHexPositions = function(hexRadius)
+HexGrid.prototype.initHexPositions = function()
 {
 	var x, y;
-	this.hexRadius = hexRadius;
 
 	for (j=0; j<this.grid.length; j++)
 	{
@@ -40,9 +39,9 @@ HexGrid.prototype.initHexPositions = function(hexRadius)
 		{
 			if (this.grid[j][i].valid || (j==0 && i==0))
 			{
-				this.grid[j][i].x = 2*hexRadius*(i-this.gridLength+1) - this.hexRadius*(j%2==0) + middle.x;
+				this.grid[j][i].x = 2*this.hexRadius*(i-this.gridLength+1) - this.hexRadius*(j%2==0) + middle.x;
 				this.grid[j][i].y = sqrt3*this.hexRadius*y + middle.y;
-				this.grid[j][i].r = hexRadius;
+				this.grid[j][i].r = this.hexRadius;
 			}
 		}
 	}
@@ -139,8 +138,6 @@ HexGrid.prototype.checkCollision = function(point)
 	cellCoord = {x: Math.floor((point.x - topLeft.x) / (this.hexRadius*2))-1,
 				 y: Math.floor((point.y - topLeft.y) / (this.hexRadius*sqrt3))-1 };
 
-	console.log(cellCoord.x+","+cellCoord.y);
-
 	if (cellCoord.x < -1 || cellCoord.y < -1 || 
 		cellCoord.y > this.grid.length || cellCoord.x > this.grid[0].length)
 		return result;
@@ -160,3 +157,13 @@ HexGrid.prototype.doAdjacentHexes = function(hex, operation)
 {
 	iterateGrid(operation);
 }  
+
+//clears references to hex objects to avoid memory leaks
+HexGrid.prototype.clearGrid = function()
+{
+	this.gridList.forEach(function(hex) {
+		hex.adjacentCells = [];
+	});
+	this.grid = [];
+	this.gridList = []
+}

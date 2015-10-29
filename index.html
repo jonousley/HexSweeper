@@ -13,9 +13,24 @@
 <body>
 <canvas id="canvas1" width="480"  height="320"></canvas>
 
+<div id="openModal" class="modalDialog">
+
+	<div class="dialogContent">
+		<!--<a href="#close" title="Close" class="close">X</a>-->
+		<div class="dialogText" id="gameLost">
+			<h1>You Lose!</h1>
+		</div>
+		<div class = "dialogText" id="gameWon"> <h1>You Win! </h1></div>
+		<div class="dialogButton" id="restart">
+				<h3>Restart?</h3>
+		</div>
+	</div>
+</div>
+
 <script src="js/hex.js"></script>
 <script src="js/drawer.js"></script>
 <script src="js/hex_grid.js"></script>
+<script src="js/util.js"></script>
 <script src="js/game.js"></script>
 
 </body>

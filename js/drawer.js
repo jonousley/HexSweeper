@@ -3,12 +3,12 @@ function Drawer(ctx)
 	this.ctx = ctx;
 }
 
-Drawer.prototype.drawHex = function(x, y, r, colorScheme)
+Drawer.prototype.drawHex = function(x, y, r, colorScheme,colorBorder)
 {
 	var hexConst = r*sqrt3/2;
 
 	this.ctx.fillStyle = colorScheme.fill;
-	this.ctx.strokeStyle = colorScheme.stroke;
+	this.ctx.strokeStyle = colorBorder;
 
     this.ctx.lineWidth = r/20;
 
@@ -42,6 +42,17 @@ Drawer.prototype.drawX = function(x,y,text,size)
 	this.ctx.lineTo(x+size,y+size);
 	this.ctx.moveTo(x+size,y-size);
 	this.ctx.lineTo(x-size,y+size);
+	this.ctx.closePath();
+	this.ctx.stroke();
+}
+
+Drawer.prototype.drawLine = function(point1, point2, size, color)
+{
+	this.ctx.strokeStyle = color;
+	this.ctx.lineWidth = size;
+	this.ctx.beginPath();
+	this.ctx.moveTo(point1.x,point1.y);
+	this.ctx.lineTo(point2.x,point2.y);
 	this.ctx.closePath();
 	this.ctx.stroke();
 }
