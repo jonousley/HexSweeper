@@ -24,6 +24,46 @@ Drawer.prototype.drawHex = function(x, y, r, colorScheme,colorBorder)
 	this.ctx.stroke();
 }
 
+Drawer.prototype.drawShadowedHex = function(x, y, r, colorScheme, down)
+{
+	var hexConst = r*sqrt3/2;
+
+	this.ctx.fillStyle = "black";
+
+	this.ctx.beginPath();
+	this.ctx.moveTo(x, y-r);
+	this.ctx.lineTo(x+hexConst, y-r/2);
+	this.ctx.lineTo(x+hexConst, y+r/2);
+	this.ctx.lineTo(x, y+r);
+	this.ctx.lineTo(x-hexConst, y+r/2);
+	this.ctx.lineTo(x-hexConst, y-r/2);
+	this.ctx.closePath();
+	this.ctx.fill();
+
+	if (down)
+	{
+		x+=r/15;
+		y+=r/15;
+	}
+	else
+	{
+		x-=r/15;
+		y-=r/15;
+	}
+
+	this.ctx.fillStyle = colorScheme.fill;
+	
+	this.ctx.beginPath();
+	this.ctx.moveTo(x, y-r);
+	this.ctx.lineTo(x+hexConst, y-r/2);
+	this.ctx.lineTo(x+hexConst, y+r/2);
+	this.ctx.lineTo(x, y+r);
+	this.ctx.lineTo(x-hexConst, y+r/2);
+	this.ctx.lineTo(x-hexConst, y-r/2);
+	this.ctx.closePath();
+	this.ctx.fill();
+}
+
 Drawer.prototype.drawText = function(x,y,text,size)
 {
 	this.ctx.font = size+'pt Calibri';
@@ -37,6 +77,7 @@ Drawer.prototype.drawX = function(x,y,text,size)
 {
 	size = Math.floor(size/2);
 	this.ctx.strokeStyle = "red";
+	this.ctx.lineWidth = size/8;
 	this.ctx.beginPath();
 	this.ctx.moveTo(x-size,y-size);
 	this.ctx.lineTo(x+size,y+size);

@@ -1,6 +1,5 @@
 //This object contains two data structures to store the grid of hexes, a 2d array and a list
-//To 
-
+//
 
 function HexGrid(gridLength)
 {
@@ -25,6 +24,7 @@ function HexGrid(gridLength)
 			else this.grid[j][i] = invalidHex; //not in the hexagon pattern
 		}
 	}
+	this.initAdjacentLists();
 }
 
 
@@ -45,7 +45,11 @@ HexGrid.prototype.initHexPositions = function()
 			}
 		}
 	}
+}
 
+
+HexGrid.prototype.initAdjacentLists = function()
+{
 	for (j=0; j<this.grid.length; j++)
 	{
 		for (i=0; i<this.grid[j].length; i++)

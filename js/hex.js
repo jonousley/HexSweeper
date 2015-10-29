@@ -44,10 +44,13 @@ Hex.prototype.draw = function(drawer)
 	if (!this.valid) return;
 
 	if (this.revealed && this.value==-1)
+		//drawer.drawShadowedHex(this.x,this.y,this.r,hexColors[2], true);
 		drawer.drawHex(this.x,this.y,this.r,hexColors[2], borderColors[0]);
 	else if(this.revealed || (this.pressed && !this.marked))
+		//drawer.drawShadowedHex(this.x,this.y,this.r,hexColors[1], true);
 		drawer.drawHex(this.x,this.y,this.r,hexColors[1], borderColors[this.highlighted]);
 	else
+		//drawer.drawShadowedHex(this.x,this.y,this.r,hexColors[0], false);
 		drawer.drawHex(this.x,this.y,this.r,hexColors[0], borderColors[this.highlighted]);
 
 
@@ -92,6 +95,8 @@ Hex.prototype.reveal = function()
 {
 	if (!this.valid || this.revealed || this.marked) return 0;
 	this.revealed = 1;
+	//this.r += this.r*(1-sqrt3/2);
+
 	var hexesRevealed = 1;
 
 	if (0 == this.value)
