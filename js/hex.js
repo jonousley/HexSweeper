@@ -1,10 +1,8 @@
-
-
-var hexColors = [{fill:"#709BB8",stroke:"black"},{fill:"#C6D7E3", stroke:"black"},
-				{fill:"red", stroke:"black"}];
-
-var borderColors = ["black","black"];
-var beginnerColor = "#9DFFFF";
+var hexColor = {unrevealed: "#709BB8", 
+				revealed: "#C6D7E3", 
+				mine: "red", 
+				border: "black", 
+				highlight:"#9DFFFF"};
 
 
 function Hex(valid, r)
@@ -43,24 +41,20 @@ Hex.prototype.draw = function(drawer)
 {
 	if (!this.valid) return;
 
-	if (this.revealed && this.value==-1)
-		//drawer.drawShadowedHex(this.x,this.y,this.r,hexColors[2], true);
-		drawer.drawHex(this.x,this.y,this.r,hexColors[2], borderColors[0]);
-	else if(this.revealed || (this.pressed && !this.marked))
-		//drawer.drawShadowedHex(this.x,this.y,this.r,hexColors[1], true);
-		drawer.drawHex(this.x,this.y,this.r,hexColors[1], borderColors[this.highlighted]);
-	else
-		//drawer.drawShadowedHex(this.x,this.y,this.r,hexColors[0], false);
-		drawer.drawHex(this.x,this.y,this.r,hexColors[0], borderColors[this.highlighted]);
-
+	drawer.drawHex(this.x,this.y,this.r,this.getColor(),hexColor.border);
+	//drawer.drawCircle(this.x,this.y,this.r,this.getColor(),hexColor.border);
+	//drawer.drawShadowedHex(this.x,this.y,this.r,this.getColor(), this.revealed);
 
 	if (this.revealed && this.value>0)
 		drawer.drawText(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
 
 	if (this.marked)
-		drawer.drawX(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
+		drawer.drawQuarantine(this.x,this.y,this.r*3/4,"red",this.getColor());
+		//drawer.drawX(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
 }
 
+//draws a highlight to all adjacent, unrevealed hexes
+//call before draw function so it doesn't draw on top
 Hex.prototype.drawHighlight = function(drawer)
 {
 	if (!this.valid) return;
@@ -72,21 +66,37 @@ Hex.prototype.drawHighlight = function(drawer)
 		{
 			var thickness = that.r*(2-sqrt3);
 			if (getDistance(hex,that) < that.r*2.1) thickness = that.r;
-			drawer.drawLine(that,hex,thickness,beginnerColor);
+			drawer.drawLine(that,hex,thickness,hexColor.highlight);
 		}
 	});
 	//drawer.drawHex(this.x,this.y,this.r*2*sqrt3-this.r,{fill:beginnerColor},beginnerColor);
 }
 
+Hex.prototype.getColor = function()
+{
+	if (this.revealed && this.value==-1)
+		return hexColor.mine;
+	//else if (this.marked) return "yellow";
+	else if(this.revealed==1 || (this.pressed && !this.marked))
+		return hexColor.revealed;
+	else
+		return hexColor.unrevealed;
+}
+
+
+//returns true if the given point falls inside this hexagon
 Hex.prototype.checkCollision = function(point)
 {
 	//var result = {collision:0, x: 0, y:0};
 	if (!this.valid) return false;
 
-	if (point.y<this.y-this.r) return false;
-	if (point.y>this.y+this.r) return false;
-	if (point.x<this.x-sqrt3/2*this.r) return false;
-	if (point.x>this.x+sqrt3/2*this.r) return false;
+	var xDif = Math.abs(this.x - point.x);
+
+	if (xDif > this.r*sqrt3/2) return false;
+
+	//checks that it's above and under the upper and lower slopes of the hexagon
+	if (point.y>this.y+(this.r-xDif/sqrt3)) return false;
+	if (point.y<this.y-(this.r-xDif/sqrt3)) return false;
 
 	return true;
 }

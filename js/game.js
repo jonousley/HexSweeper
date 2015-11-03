@@ -9,11 +9,13 @@ var middle = {x:0, y:0}; //middle of the page, all coords will relative to this 
 const hexAngle = Math.PI * 2/3;
 const sqrt3 = Math.sqrt(3); //commonly used constant for hexagonal calculations
 
-var gridLength = 6;  //how many hexagons on each side of the large hexagon
-var startMines = 10; //starting amount of mines
+var gridLength = 4;  //how many hexagons on each side of the large hexagon
+var startMines = 4; //starting amount of mines
 var hexesRevealed = 0;
 
 var beginner = true;
+
+var mobileDevice = false;
 
 
 //the clicked hex during the mousedown even
@@ -64,7 +66,8 @@ function restartGame()
 	hexesRevealed = 0;
 }
 
-function resizeGraphics()
+
+resizeGraphics = function()
 {
 	var hexSideSize = Math.min(ctx.canvas.width*.95/2, ctx.canvas.height*.95/sqrt3);
 	grid.hexRadius = hexSideSize/gridLength/2;
@@ -170,10 +173,15 @@ function showDialog(gameResult)
 	{
 		$("#gameWon").css("display", "block");
 		$("#gameLost").css("display", "none");
-		beginner = false;
+		gridLength++;
+		startMines=Math.floor(startMines*2);
+		//beginner = false;
 	}
 	else
 	{
+		grid.gridList.forEach(function(hex) {
+			if (!hex.revealed) hex.revealed = 2;
+		});
 		$("#gameLost").css("display", "block");
 		$("#gameWon").css("display", "none");
 	} 
@@ -181,8 +189,10 @@ function showDialog(gameResult)
 
 function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	if (ctx.canvas.width != window.innerWidth ||
-		ctx.canvas.height != window.innerHeight)
+
+	if (!mobileDevice &&
+		(ctx.canvas.width != window.innerWidth ||
+		ctx.canvas.height != window.innerHeight))
 	{
 		ctx.canvas.width  = window.innerWidth;
 		ctx.canvas.height = window.innerHeight;
