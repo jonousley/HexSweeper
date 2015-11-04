@@ -15,8 +15,8 @@ function HexGrid(gridLength)
 		{
 			//if (i>j-gridLength && i<gridLength+j)
 			//{
-			 if(i<gridLength*2-1-Math.floor(Math.abs(j-gridLength+1)/2) &&
-				i>=Math.ceil(Math.abs(j-gridLength+1)/2)) 
+			 if(i<gridLength*2-1-Math.floor(Math.abs(j-gridLength+1)/2+(gridLength%2)/2) &&
+				i>=Math.ceil(Math.abs(j-gridLength+1)/2-(gridLength%2)/2)) 
 			 {
 				this.grid[j][i] = new Hex(1); //uninitialized, valid hex
 				this.gridList.push(this.grid[j][i]);
@@ -39,7 +39,8 @@ HexGrid.prototype.initHexPositions = function()
 		{
 			if (this.grid[j][i].valid || (j==0 && i==0))
 			{
-				this.grid[j][i].x = 2*this.hexRadius*(i-this.gridLength+1) - this.hexRadius*(j%2==0) + middle.x;
+				//calculated coordinates for each hex
+				this.grid[j][i].x = 2*this.hexRadius*(i-this.gridLength+1) + this.hexRadius*(gridLength%2 ? (j%2):-1*!(j%2)) + middle.x;
 				this.grid[j][i].y = sqrt3*this.hexRadius*y + middle.y;
 				this.grid[j][i].r = this.hexRadius;
 			}

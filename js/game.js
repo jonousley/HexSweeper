@@ -9,8 +9,8 @@ var middle = {x:0, y:0}; //middle of the page, all coords will relative to this 
 const hexAngle = Math.PI * 2/3;
 const sqrt3 = Math.sqrt(3); //commonly used constant for hexagonal calculations
 
-var gridLength = 4;  //how many hexagons on each side of the large hexagon
-var startMines = 4; //starting amount of mines
+var gridLength = 5;  //how many hexagons on each side of the large hexagon
+var startMines = 7; //starting amount of mines
 var hexesRevealed = 0;
 
 var beginner = true;
