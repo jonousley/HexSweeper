@@ -1,2 +1,5 @@
 hexsweeper.sublime*
 graphics/favicon.xcf
+app.js
+package.json
+node_modules
