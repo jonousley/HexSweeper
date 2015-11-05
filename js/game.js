@@ -25,12 +25,15 @@ var leftClickedHex = invalidHex;
 var lastClickedHex = invalidHex;
 var rightClickedHex = invalidHex;
 
+var bgColor = "white";
 
 var grid;   //HexGrid object
 var drawer; //drawer Object
 //var inputManager;
 
-var mouseCode = {left: (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) ? 1:0, right : 2}; //normalized mouseCodes for IE
+var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+
+var mouseCode = {left: isIE ? 1:0, right : 2}; //normalized mouseCodes for IE
 var gameInitialized = false; //don't add mines until the first click happens so it's guaranteed not a mine
 
 function init()
@@ -100,7 +103,7 @@ function getXYfromEvent(e)
 function mouseDown(event)
 {
 	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
-
+	
 	if (event.button === mouseCode.left)
 	{
 		lastClickedHex = invalidHex;
@@ -188,7 +191,8 @@ function showDialog(gameResult)
 }
 
 function draw() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = bgColor ;
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	if (!mobileDevice &&
 		(ctx.canvas.width != window.innerWidth ||
