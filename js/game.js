@@ -2,36 +2,29 @@
 var canvas = document.getElementById("canvas1");
 var ctx = canvas.getContext("2d");
 
-var middle = {x:0, y:0}; //middle of the page, all coords will relative to this location
-
-//var hexRadius = 20;		  //not 20, overwritten constantly based on page resizing
-
-const hexAngle = Math.PI * 2/3;
-const sqrt3 = Math.sqrt(3); //commonly used constant for hexagonal calculations
-
-var gridLength = 5;  //how many hexagons on each side of the large hexagon
+var gridLength = 5; //how many hexagons on each side of the large hexagon
 var startMines = 7; //starting amount of mines
 var hexesRevealed = 0;
 
 var beginner = true;
 
-var mobileDevice = false;
+var counter = 0;
 
 
-//the clicked hex during the mousedown even
-//will be an invalid hex if no Hex was clicked
 var invalidHex = new Hex(0); //Hex(0) creates an unusable Hex
-var leftClickedHex = invalidHex; 
 var lastClickedHex = invalidHex;
-var rightClickedHex = invalidHex;
 
 var bgColor = "white";
 
 var grid;   //HexGrid object
 var drawer; //drawer Object
+var inputController;
+var screen;
 //var inputManager;
 
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+var mobileDevice = typeof window.orientation !== 'undefined';
 
 var mouseCode = {left: isIE ? 1:0, right : 2}; //normalized mouseCodes for IE
 var gameInitialized = false; //don't add mines until the first click happens so it's guaranteed not a mine
@@ -46,15 +39,27 @@ function init()
   		restartGame();
 	});
 
-	canvas.addEventListener("mousedown", mouseDown, false);
-	canvas.addEventListener("mouseup", mouseUp, false);
-
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 
-	grid = new HexGrid(gridLength);
-	resizeGraphics();
+	grid = new HexGrid(gridLength);	
+	screen = new ScreenController();
+
+	inputController = new InputController(canvas);
+	inputController.on("leftMouseUp", leftClick);
+	inputController.on("rightMouseDown", rightClick);
+	inputController.on("windowResize", grid.initHexPositions.bind(grid));
+	inputController.on("zoomScreen", screen.zoom.bind(screen));
+	inputController.on("moveScreen", screen.move.bind(screen));
+
+
+
+	screen.resizeGraphics();
+	//grid.initHexPositions();
+
 	drawer = new Drawer(ctx);
+
+
 	//grid.initMines(startMines);
 	//inputManager = new InputManager();
 }
@@ -63,107 +68,35 @@ function restartGame()
 {
 	grid.clearGrid();
 	grid = new HexGrid(gridLength);
-	resizeGraphics();
-	//grid.initHexPositions();
-	gameInitialized = false;
-	hexesRevealed = 0;
-}
-
-
-resizeGraphics = function()
-{
-	var hexSideSize = Math.min(ctx.canvas.width*.95/2, ctx.canvas.height*.95/sqrt3);
-	grid.hexRadius = hexSideSize/gridLength/2;
-
-	middle.x = ctx.canvas.width/2;
-	middle.y = ctx.canvas.height/2;
-
+	inputController.grid = grid;
+	//resizeGraphics();
 	grid.initHexPositions();
+	gameInitialized = false;
 }
 
-//additional processing for the event data, compatible with firefox/chrome
-function getXYfromEvent(e)
+function leftClick(data)
 {
-	var result = {x:0, y:0};
-	if (e.pageX || e.pageY) { 
-	  result.x = e.pageX;
-	  result.y = e.pageY;
-	}
-	else { 
-	  result.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
-	  result.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
-	} 
-	result.x -= canvas.offsetLeft;
-	result.y -= canvas.offsetTop;
-	return result;
+	screen.normalizePosition(data);
+	grid.revealAt(data);
+	if (grid.hexesRevealed == grid.gridList.length-startMines) gameOver();
 }
 
-//determines what hexagon was selected when the mouse button is pressed
-//and stores it in leftClickedHex or rightClickedHex
-function mouseDown(event)
+function rightClick(data)
 {
-	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
-	
-	if (event.button === mouseCode.left)
-	{
-		lastClickedHex = invalidHex;
-		//if the other button is already down and selecting a different hex, ignore
-		if (rightClickedHex.valid) return;
-
-		leftClickedHex = grid.checkCollision(point);
-		if (!leftClickedHex.valid) return;
-		
-		leftClickedHex.pressed = true;
-		if (beginner) {
-			lastClickedHex = leftClickedHex;
-		}
-
-	}
-
-	else if (event.button === mouseCode.right)
-	{
-		if (leftClickedHex.valid) return;
-		rightClickedHex = grid.checkCollision(point);
-		if (rightClickedHex.valid) rightClickedHex.mark();
-	}
-	else return;
-
+	screen.normalizePosition(data);
+	var hex = grid.checkCollision(data);
+	if (hex) hex.mark();
 }
 
-//ensures that the hexagon being selected is the same as the one pressed during the mouseDown
-//event and if so runs the clickHex function
-function mouseUp(event)
+
+function gameStart(hex)
 {
-	point = getXYfromEvent(event);//{x:event.x-canvas.offsetLeft, y:event.y-canvas.offsetTop};
-	//console.log(point.x+","+point.y); debug
-
-	if (event.button === mouseCode.left)
-	{
-		//checks that the mouse is still over the hex it clicked
-		if (leftClickedHex.valid && leftClickedHex.checkCollision(point)) 
-			leftClickHex(leftClickedHex);
-
-		leftClickedHex.pressed = false;
-		leftClickedHex = invalidHex;
-	}
-	else if (event.button === mouseCode.right)
-	{
-		rightClickedHex = invalidHex;
-	}
-	else return;
+	grid.initMines(startMines, hex);
 }
 
-function leftClickHex(hex)
+function gameOver()
 {
-	if (!gameInitialized)
-	{
-		gameInitialized = true;
-		grid.initMines(startMines, hex);
-	}
-	//hex.superReveal();
-	hexesRevealed += hex.reveal();
-	if (hexesRevealed == grid.gridList.length - startMines)
-		showDialog(true);
+	showDialog(grid.winning);
 }
 
 function showDialog(gameResult)
@@ -178,7 +111,6 @@ function showDialog(gameResult)
 		$("#gameLost").css("display", "none");
 		gridLength++;
 		startMines=Math.floor(startMines*2);
-		//beginner = false;
 	}
 	else
 	{
@@ -190,33 +122,35 @@ function showDialog(gameResult)
 	} 
 }
 
+var prevTime = 0;
+var curTime;
 function draw() {
 	ctx.fillStyle = bgColor ;
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-	if (!mobileDevice &&
-		(ctx.canvas.width != window.innerWidth ||
-		ctx.canvas.height != window.innerHeight))
-	{
-		ctx.canvas.width  = window.innerWidth;
-		ctx.canvas.height = window.innerHeight;
-		resizeGraphics();
-	}
+	screen.fill("white");
 
-	lastClickedHex.drawHighlight(drawer);
-	grid.iterateGrid(function(hex, i, j) {
-		hex.draw(drawer);
-	});
+	grid.draw(drawer);
 
-	window.requestAnimationFrame(draw); //draw whenever possible
+
+	curTime = new Date().getTime();
+	//drawer.drawText({x:200,y:100},10,""+inputController.touches.length,"black");
+	prevTime = curTime;
+	//screen.finishDraw();
+
+	if (inputController.isZooming)
+		drawer.drawHex(inputController.curTouch.center, 20, "red");
+
+
+	if (!isOpera)
+		window.requestAnimationFrame(draw); //draw whenever possible
 }
 
 function update() {
-
-
+	inputController.update();
+	screen.update();
 }
 
 init();
-//setInterval(update,10); //call update every ten ms
-draw(); //start the draw cycle
-	//setInterval(draw, 10);
+setInterval(update,10); //call update every ten ms
+if (!isOpera) draw(); //start the draw cycle
+else setInterval(draw, 10);

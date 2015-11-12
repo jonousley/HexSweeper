@@ -1,10 +1,14 @@
+
 function Drawer(ctx)
 {
 	this.ctx = ctx;
 }
 
-Drawer.prototype.drawHex = function(x, y, r, colorScheme,colorBorder)
+Drawer.prototype.drawHex = function(object, r, colorScheme,colorBorder)
 {
+	var x = object.x;
+	var y = object.y;
+
 	var hexConst = r*sqrt3/2;
 
 	this.ctx.fillStyle = colorScheme;
@@ -38,10 +42,13 @@ Drawer.prototype.drawCircle = function(x,y,r,colorScheme,colorBorder,thickness)
 	if (colorBorder) this.ctx.stroke();
 }
 
-Drawer.prototype.drawQuarantine = function(x,y,r,colorFill, colorBackground)
+Drawer.prototype.drawQuarantine = function(object,r,colorFill, colorBackground)
 {
-	w = .45 * r; //distance from center of outer circle to center of symbol
-	r = .55 * r; //radius of outer circles
+	var x = object.x;
+	var y = object.y;
+
+	var w = .45 * r; //distance from center of outer circle to center of symbol
+	var r = .55 * r; //radius of outer circles
 
 	innerCircle = .70; // ratio of the outer circle radius to the inner
 	innerOffset = .02; // a small offset so that the inner circle reaches the edge of the outer
@@ -66,8 +73,10 @@ Drawer.prototype.drawQuarantine = function(x,y,r,colorFill, colorBackground)
 	this.drawCircle(x,y-w,r,0,colorBackground,r/10);
 }
 
-Drawer.prototype.drawShadowedHex = function(x, y, r, colorScheme, down)
+Drawer.prototype.drawShadowedHex = function(object, r, colorScheme, down)
 {
+	var x = object.x;
+	var y = object.y;
 	var hexConst = r*sqrt3/2;
 
 	this.ctx.fillStyle = "black";
@@ -93,7 +102,7 @@ Drawer.prototype.drawShadowedHex = function(x, y, r, colorScheme, down)
 		y-=r/15;
 	}
 
-	this.ctx.fillStyle = colorScheme.
+	this.ctx.fillStyle = colorScheme;
 	
 	this.ctx.beginPath();
 	this.ctx.moveTo(x, y-r);
@@ -106,17 +115,22 @@ Drawer.prototype.drawShadowedHex = function(x, y, r, colorScheme, down)
 	this.ctx.fill();
 }
 
-Drawer.prototype.drawText = function(x,y,text,size)
+Drawer.prototype.drawText = function(object, size, text)
 {
-	this.ctx.font = size+'pt Calibri';
+	var x = object.x;
+	var y = object.y;
+
+	this.ctx.font = Math.floor(size)+'pt Calibri';
 	this.ctx.textAlign = 'center';
 	this.ctx.textBaseline = 'middle';
 	this.ctx.fillStyle = "black";
 	this.ctx.fillText(text, x, y);
 }
 
-Drawer.prototype.drawX = function(x,y,text,size)
+Drawer.prototype.drawX = function(object)
 {
+	var x = object.x;
+	var y = object.y;
 	size = Math.floor(size/2);
 	this.ctx.strokeStyle = "red";
 	this.ctx.lineWidth = size/8;
@@ -131,6 +145,7 @@ Drawer.prototype.drawX = function(x,y,text,size)
 
 Drawer.prototype.drawLine = function(point1, point2, size, color)
 {
+
 	this.ctx.strokeStyle = color;
 	this.ctx.lineWidth = size;
 	this.ctx.beginPath();
