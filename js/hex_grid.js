@@ -6,15 +6,20 @@ function HexGrid(gridLength)
 	this.grid = [];
 	this.gridList = [];
 	this.gridLength = gridLength;
-	this.hexRadius = 0;
+	this.hexRadius = 10;
+
+	this.selectedHex = invalidHex;
+
+	this.winning = true;
+	this.hexesRevealed = 0;
+
+	this.size = (gridLength*2-1)*this.hexRadius;
 
 	for (j =0; j<gridLength*2-1; j++)
 	{
 		this.grid[j] = [];
 		for (i = 0; i<gridLength*2-1; i++)
 		{
-			//if (i>j-gridLength && i<gridLength+j)
-			//{
 			 if(i<gridLength*2-1-Math.floor(Math.abs(j-gridLength+1)/2+(gridLength%2)/2) &&
 				i>=Math.ceil(Math.abs(j-gridLength+1)/2-(gridLength%2)/2)) 
 			 {
@@ -24,13 +29,14 @@ function HexGrid(gridLength)
 			else this.grid[j][i] = invalidHex; //not in the hexagon pattern
 		}
 	}
+
 	this.initAdjacentLists();
 }
 
-
-HexGrid.prototype.initHexPositions = function()
+HexGrid.prototype.initHexPositions = function(data)
 {
 	var x, y;
+	this.hexRadius = screen.getGridSize()/(gridLength*2-1);
 
 	for (j=0; j<this.grid.length; j++)
 	{
@@ -40,14 +46,13 @@ HexGrid.prototype.initHexPositions = function()
 			if (this.grid[j][i].valid || (j==0 && i==0))
 			{
 				//calculated coordinates for each hex
-				this.grid[j][i].x = 2*this.hexRadius*(i-this.gridLength+1) + this.hexRadius*(gridLength%2 ? (j%2):-1*!(j%2)) + middle.x;
-				this.grid[j][i].y = sqrt3*this.hexRadius*y + middle.y;
+				this.grid[j][i].x = 2*this.hexRadius*(i-this.gridLength+1) + this.hexRadius*(gridLength%2 ? (j%2):-1*!(j%2)) + screen.center.x;
+				this.grid[j][i].y = sqrt3*this.hexRadius*y + screen.center.y;
 				this.grid[j][i].r = this.hexRadius;
 			}
 		}
 	}
 }
-
 
 HexGrid.prototype.initAdjacentLists = function()
 {
@@ -71,7 +76,6 @@ HexGrid.prototype.initAdjacentLists = function()
 	}
 }
 
-
 HexGrid.prototype.initMines = function(mineCount, startHex)
 {
 	var chosenHex;
@@ -87,18 +91,47 @@ HexGrid.prototype.initMines = function(mineCount, startHex)
 			if (hex.valid && hex.value >= 0) hex.value++;
 		});
 	}
+}
 
-	//this.iterateGrid(function (hex, i, j) {
-	//	hex.adjacentCells=[
-	//});
+HexGrid.prototype.draw = function(drawer)
+{
+	this.selectedHex.drawHighlight(drawer);
+	this.iterateGrid(function(hex, i, j) {
+		hex.draw(drawer);
+	});
+}
 
+HexGrid.prototype.revealAt = function(point)
+{
+	var hex = this.checkCollision(point);
+	if (!hex.valid) return false;
+
+	if (this.hexesRevealed == 0) gameStart(hex);
+
+	if (hex.revealed) 
+	{
+		if (this.selectedHex != hex) this.selectedHex = hex;
+		else this.selectedHex = invalidHex;
+	}
+
+	if (this.selectedHex.valid && hex.isAdjacent(this.selectedHex))
+	{
+		if (this.selectedHex.getAdjacentMarkers() < this.selectedHex.value || hex.marked)
+		{
+			hex.mark();
+			return true;
+		}
+	}
+		
+	this.hexesRevealed += hex.reveal();
+
+	return true;
 }
 
 HexGrid.prototype.getHex = function(x, y)
 {
 	if (y<0 || y>=this.grid.length) return invalidHex;
 	if (x<0 || x>=this.grid[0].length) return invalidHex;
-
 	return this.grid[y][x];
 }
 
@@ -125,16 +158,7 @@ HexGrid.prototype.iterateList = function(operation)
 //returns an invalid hex object if none found
 HexGrid.prototype.checkCollision = function(point)
 {
-	//brute force method, to be replaced
 	result = invalidHex;
-	/*this.iterateList(function(hex) {
-		if (hex.checkCollision(point))
-		{
-			result = hex;
-		}
-	});
-	return result;*/
-
 
 	var topLeft = {x: this.grid[0][0].x - this.hexRadius*2, 
 		y: this.grid[0][0].y - this.hexRadius*2};
@@ -170,5 +194,5 @@ HexGrid.prototype.clearGrid = function()
 		hex.adjacentCells = [];
 	});
 	this.grid = [];
-	this.gridList = []
+	this.gridList = [];
 }

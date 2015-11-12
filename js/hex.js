@@ -41,15 +41,15 @@ Hex.prototype.draw = function(drawer)
 {
 	if (!this.valid) return;
 
-	drawer.drawHex(this.x,this.y,this.r,this.getColor(),hexColor.border);
+	drawer.drawHex(this,this.r, this.getColor(),hexColor.border);
 	//drawer.drawCircle(this.x,this.y,this.r,this.getColor(),hexColor.border);
 	//drawer.drawShadowedHex(this.x,this.y,this.r,this.getColor(), this.revealed);
 
 	if (this.revealed && this.value>0)
-		drawer.drawText(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
+		drawer.drawText(this, Math.floor(this.r*.7), ""+this.value);
 
 	if (this.marked)
-		drawer.drawQuarantine(this.x,this.y,this.r*3/4,"red",this.getColor());
+		drawer.drawQuarantine(this,this.r*3/4,"red",this.getColor());
 		//drawer.drawX(this.x, this.y, ""+this.value, Math.floor(this.r*.7));
 }
 
@@ -101,12 +101,14 @@ Hex.prototype.checkCollision = function(point)
 	return true;
 }
 
+//this hex is getting shown
 Hex.prototype.reveal = function()
 {
 	if (!this.valid || this.revealed || this.marked) return 0;
 	this.revealed = 1;
 	//this.r += this.r*(1-sqrt3/2);
 
+	//used to recursively determine how many hexes were revealed in total by this click
 	var hexesRevealed = 1;
 
 	if (0 == this.value)
@@ -117,29 +119,10 @@ Hex.prototype.reveal = function()
 	}
 	else if (-1 == this.value)
 	{
+		grid.winning = false;
 		showDialog(false);
 	}
 	return hexesRevealed;
-}
-
-Hex.prototype.superReveal = function()
-{
-	if (!this.revealed) return;
-
-	if (this.getAdjacentMarkers() == this.value)
-	{
-		this.adjacentCells.forEach(function(i) {
-			i.reveal();
-		});
-	}
-}
-
-Hex.prototype.doublepress = function()
-{
-	this.pressed = this.doublePressed = true;
-	this.adjacentCells.forEach(function(hex) {
-		hex.pressed = true;
-	});
 }
 
 Hex.prototype.mark = function()
@@ -148,6 +131,7 @@ Hex.prototype.mark = function()
 	this.marked = !this.marked;
 }
 
+//determines how many flags are currently placed adjacent to this hex
 Hex.prototype.getAdjacentMarkers = function()
 {
 	var markCount = 0;
@@ -155,4 +139,13 @@ Hex.prototype.getAdjacentMarkers = function()
 		if (i.valid) markCount += (i.marked || (i.value==-1 && i.revealed));
 	});
 	return markCount;
+}
+
+Hex.prototype.isAdjacent = function(hex)
+{
+	var isAdjacent = false;
+	this.adjacentCells.forEach(function(i) {
+		if (i.valid && i == hex) isAdjacent = true;
+	});
+	return isAdjacent;
 }
