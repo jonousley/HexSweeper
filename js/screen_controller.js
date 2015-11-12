@@ -111,5 +111,5 @@ ScreenController.prototype.normalizeScale = function(data)
 //be considered as a mouse click
 ScreenController.prototype.getMoveDistance = function()
 {
-	return 20;
+	return grid.hexRadius;
 }

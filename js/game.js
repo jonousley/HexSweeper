@@ -137,10 +137,6 @@ function draw() {
 	prevTime = curTime;
 	//screen.finishDraw();
 
-	if (inputController.isZooming)
-		drawer.drawHex(inputController.curTouch.center, 20, "red");
-
-
 	if (!isOpera)
 		window.requestAnimationFrame(draw); //draw whenever possible
 }
