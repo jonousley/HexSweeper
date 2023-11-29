@@ -76,8 +76,10 @@ HexGrid.prototype.initAdjacentLists = function()
 	}
 }
 
-HexGrid.prototype.initMines = function(mineCount, startHex)
+HexGrid.prototype.initMines = function(minePercent, startHex)
 {
+	var total = 3*this.gridLength**2 -3*this.gridLength+1;
+	var mineCount = Math.floor(total*minePercent);
 	var chosenHex;
 	for (i=0; i<Math.min(mineCount, this.gridList.length-1); i++)
 	{
