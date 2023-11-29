@@ -3,7 +3,7 @@ var canvas = document.getElementById("canvas1");
 var ctx = canvas.getContext("2d");
 
 var gridLength = 5; //how many hexagons on each side of the large hexagon
-var startMines = .1; //starting percentage of mines
+var startMines = .12; //starting percentage of mines
 var hexesRevealed = 0;
 
 var beginner = true;
