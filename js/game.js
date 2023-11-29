@@ -3,7 +3,7 @@ var canvas = document.getElementById("canvas1");
 var ctx = canvas.getContext("2d");
 
 var gridLength = 5; //how many hexagons on each side of the large hexagon
-var startMines = 7; //starting amount of mines
+var startMines = .12; //starting percentage of mines
 var hexesRevealed = 0;
 
 var beginner = true;
@@ -110,7 +110,7 @@ function showDialog(gameResult)
 		$("#gameWon").css("display", "block");
 		$("#gameLost").css("display", "none");
 		gridLength++;
-		startMines=Math.floor(startMines*2);
+		startMines=startMines+.01;
 	}
 	else
 	{
