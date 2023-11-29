@@ -78,7 +78,7 @@ function leftClick(data)
 {
 	screen.normalizePosition(data);
 	grid.revealAt(data);
-	if (grid.hexesRevealed == grid.gridList.length-startMines) gameOver();
+	if (grid.hexesRevealed == Math.ceil(grid.gridList.length*(1-startMines))) gameOver();
 }
 
 function rightClick(data)
